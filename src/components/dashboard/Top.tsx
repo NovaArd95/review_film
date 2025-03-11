@@ -100,12 +100,12 @@ const TopMovies = () => {
                 </button>
                 
               
-<Link href={`/films/${movie.id_film}`}>
-  <button className="w-full bg-white/10 hover:bg-white/20 text-white py-2 rounded-md flex items-center justify-center gap-2">
-    <Play className="w-4 h-4" />
-    Trailer
-  </button>
-</Link>
+              <Link href={`/films/${movie.id_film}`}>
+                <button className="w-full bg-white/10 hover:bg-white/20 text-white py-2 rounded-md flex items-center justify-center gap-2">
+                  <Play className="w-4 h-4" />
+                  Trailer
+                </button>
+              </Link>
               </div>
             </div>
           ))}

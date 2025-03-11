@@ -5,14 +5,17 @@ import { Search, LogOut, BookmarkPlus } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { signOut, useSession } from 'next-auth/react';
+import { Session } from 'next-auth';
 import { Menu } from '@headlessui/react';
 import { motion } from 'framer-motion';
 import SettingsUser from '@/components/dashboard/SettingsUser';
 import { MdMovieFilter } from 'react-icons/md';
 
+const Navbar: React.FC = () => {
 
-const Navbar = () => {
-  const { data: session, status, update } = useSession();
+
+  const { data: session } = useSession() as { data: Session & { user: { role?: string } } };
+  const status = useSession().status;
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -183,7 +186,7 @@ const Navbar = () => {
           }}
           onClose={() => {
             setShowSettings(false); // Tutup modal Settings
-            update(); // Perbarui session setelah modal ditutup
+            // Perbarui session setelah modal ditutup
           }}
         />
       )}
