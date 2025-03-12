@@ -193,11 +193,11 @@ const Comments: React.FC<CommentsProps> = ({ filmId }) => {
     <div className="space-y-6">
       {/* Form untuk menambahkan komentar utama */}
       {session?.user && (
-        <div className=" p-6 rounded-lg shadow-lg">
+        <div className=" p-6 rounded-lg shadow-xl">
           <div className="flex items-start space-x-4">
             <div className="relative w-10 h-10">
               <Image
-                src={session.user.image || "/default-avatar.png"}
+                src={session?.user?.image || "/default-avatar.png"}
                 alt={session.user.name || "User"}
                 fill
                 className="rounded-full object-cover"
@@ -249,30 +249,30 @@ const Comments: React.FC<CommentsProps> = ({ filmId }) => {
             </div>
             <p className="mt-4 text-black">{comment.content}</p>
             <div className="mt-2 flex items-center space-x-4">
-              <button onClick={() => handleReaction(comment.id, 'like')} className="flex items-center space-x-1">
+              <button onClick={() => handleReaction(comment.id, 'like')} className="flex items-center space-x-1 text-black">
                 <ThumbsUp size={18} />
                 <span>{comment.like_count}</span>
               </button>
-              <button onClick={() => handleReaction(comment.id, 'dislike')} className="flex items-center space-x-1">
+              <button onClick={() => handleReaction(comment.id, 'dislike')} className="flex items-center space-x-1 text-black">
                 <ThumbsDown size={18} />
                 <span>{comment.dislike_count}</span>
               </button>
-              <button onClick={() => setReplyTo(comment.id)}>
+              <button onClick={() => setReplyTo(comment.id)} className=" text-black">
                 Balas
               </button>
             </div>
 
-            {/* Tampilkan input balasan jika replyTo sesuai */}
-            {replyTo === comment.id && (
+            
+            {session?.user && replyTo === comment.id && (
                <div className="flex items-start space-x-3 mt-4">
                {/* Avatar */}
                <div className="relative w-10 h-10">
-                 <Image
-                   src={comment.profile_picture || "/default-avatar.png"}
-                   alt={comment.username}
-                   fill
-                   className="rounded-full object-cover"
-                 />
+               <Image
+                src={session.user.image || "/default-avatar.png"}
+                alt={session.user.name || "User"}
+                fill
+                className="rounded-full object-cover"
+              />
                </div>
          
                {/* Input Balasan */}

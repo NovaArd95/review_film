@@ -8,6 +8,7 @@ import { FaHeart, FaList, FaPlay } from "react-icons/fa";
 import Comments from "@/components/dashboard/Comments";
 import FilmRecommendations from "@/components/dashboard/FilmRecommendations";
 import OverviewModal from "@/components/dashboard/OverviewModal"; // Import komponen modal
+import FooterFilms from "@/components/dashboard/FooterFilms"; // Import FooterFilms
 
 interface Film {
   id_film: number;
@@ -62,7 +63,7 @@ const FilmDetail = () => {
         const data: Film[] = await response.json();
         // Filter out the current film from recommendations
         const filteredRecommendations = data.filter((film) => film.id_film !== Number(filmId));
-        setRecommendations(filteredRecommendations.slice(0, 5)); // Limit to 5 recommendations
+        setRecommendations(filteredRecommendations.slice(0, 10)); // Limit to 5 recommendations
       } catch (error) {
         console.error("Error fetching recommendations:", error);
       }
@@ -87,22 +88,23 @@ const FilmDetail = () => {
   if (!film) return <p className="text-black">Film not found</p>;
 
   return (
-    <div className="relative bg-white min-h-screen text-white flex flex-col items-center">
-      {/* Background Image (Hanya di bagian atas) */}
-  
-        <div className="absolute top-0 left-0 w-full h-[600px] md:h-[700px] overflow-hidden">
-          <img
-            src={film.bg_image}
-            alt="Background"
-             // Mengisi seluruh container
-            className="object-cover object-top" // Menjaga aspek rasio dan posisi gambar
-             // Kualitas gambar maksimal (100%)
-             // Prioritas loading gambar
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-[#0b1b34]" />
+    <div className="relative bg-white min-h-screen text-white flex flex-col items-center">  
+       {/* Background Image (Hanya di bagian atas) */}
+<div className="absolute top-0 left-0 w-full h-[500px] md:h-[800px] overflow-hidden" style={{ clipPath: 'inset(0 0 20% 0)' }}>
+  <img
+    src={film.bg_image}
+    alt="Background"
+    className="w-full h-full object-cover object-bottom"
+  />
+  {/* Gradasi di sisi kiri */}
+  <div className="absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-black/90 to-transparent"></div>
+  {/* Gradasi di sisi kanan */}
+  <div className="absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l from-black/90 to-transparent"></div>
+  {/* Gradasi di bagian bawah */}
+  <div className="absolute inset-0 bg-gradient-to-b from-black/75 to-[#0b1b34]" />
 </div>
       {/* Container Utama */}
-      <div className="relative z-10 max-w-6xl w-full p-6 flex flex-col md:flex-row items-start gap-6">
+      <div className="relative z-10 max-w-6xl w-full p-6 flex flex-col md:flex-row items-start gap-6 mt-8">
         {/* Cover Image */}
         <div className="max-w-[300px] bg-[#152642] rounded-lg shadow-lg self-start md:mr-8">
           <img
@@ -129,19 +131,29 @@ const FilmDetail = () => {
             <span className="text-lg">User Score</span>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex space-x-6 mb-6">
-            <button className="bg-gray-700 p-3 rounded-full flex items-center justify-center">
-              <FaHeart className="text-white text-xl" />
+         {/* Action Buttons */}
+            <div className="flex space-x-6 mb-6">
+              <div className="relative group">
+                <button className="bg-gray-700 p-3 rounded-full flex items-center justify-center group-hover:bg-red-600 transition-colors duration-300">
+                  <FaHeart className="text-white text-xl" />
+                </button>
+                <span className="absolute bottom-[-1.5rem] left-1/2 transform -translate-x-1/2 text-sm text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  Favorites
+                </span>
+              </div>
+              <div className="relative group">
+                <button className="bg-gray-700 p-3 rounded-full flex items-center justify-center group-hover:bg-blue-600 transition-colors duration-300">
+                  <FaList className="text-white text-xl" />
+                </button>
+                <span className="absolute bottom-[-1.5rem] left-1/2 transform -translate-x-1/2 text-sm text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                   Watchlist
+                </span>
+              </div>
+              <button onClick={() => setShowTrailer(true)} className="flex items-center text-white space-x-2 p-3 transition-colors duration-300">
+              <FaPlay className="text-xl hover:text-green-600 transition-colors duration-300" />
+              <span className="text-lg hover:text-green-600 transition-colors duration-300">Play Trailer</span>
             </button>
-            <button className="bg-gray-700 p-3 rounded-full flex items-center justify-center">
-              <FaList className="text-white text-xl" />
-            </button>
-            <button onClick={() => setShowTrailer(true)} className="flex items-center text-white space-x-2">
-              <FaPlay className="text-xl" />
-              <span className="text-lg">Play Trailer</span>
-            </button>
-          </div>
+            </div>
 
           <h2 className="text-xl font-semibold mb-2">Overview</h2>
           <p className="text-gray-300 mb-6">
@@ -160,21 +172,27 @@ const FilmDetail = () => {
         </div>
       </div>
 
-      {/* **Comments Section** (Pastikan Background Tetap Putih) */}
-      <div className="relative z-10 max-w-6xl w-full p-6 mt-8 bg-white text-black rounded-lg shadow-lg">
-        <h2 className="text-xl font-semibold mb-4">Comments</h2>
-        <Comments filmId={film.id_film} />
-      </div>
-
-      {/* **Recommendations Section** */}
-      <div className="relative z-10 max-w-6xl w-full p-6 mt-8 bg-white text-black rounded-lg shadow-lg">
-        <FilmRecommendations recommendations={recommendations} />
-      </div>
+            {/* **Comments and Recommendations Section** */}
+        <div className="z-10 max-w-6xl w-full p-6 mt-20">
+          {/* Kolom Kiri: Komentar */}
+          <div className="">
+            <h2 className="text-xl font-semibold mb-4 text-black">Comments</h2>
+            <Comments filmId={film.id_film} />
+          </div>
+          <div className=" mt-4 text-black mb-2">
+            <FilmRecommendations recommendations={recommendations} />
+          </div>
+        </div>
 
       {/* **Modals** */}
       {showModal && <ImageFilmDetails imageUrl={film.cover_image} title={film.title} onClose={() => setShowModal(false)} />}
       {showTrailer && <FilmTrailerModal trailerUrl={film.trailer_url} onClose={() => setShowTrailer(false)} />}
       {showOverviewModal && <OverviewModal overview={film.description} onClose={() => setShowOverviewModal(false)} />}
+      
+      {/* Add FooterFilms */}
+      <div className="w-full">
+        <FooterFilms />
+      </div>
     </div>
   );
 };

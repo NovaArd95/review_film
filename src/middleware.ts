@@ -19,25 +19,30 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  // Jika belum login dan mencoba akses halaman utama atau admin
-  if (!token && (pathname === "/" || pathname.includes("/admin"))) {
+  // Jika belum login dan mencoba akses halaman admin
+  if (!token && (pathname.includes("/admin"))) {
     return NextResponse.redirect(new URL("/auth/login", req.url));
   }
-
   // Jika role admin, izinkan akses ke semua route /admin/*
   if (token?.role === "admin" && pathname.startsWith("/admin")) {
     return NextResponse.next();
   }
 
+  if (token?.role === "author" && pathname.startsWith("/author")) {
+    return NextResponse.next();
+  }
   // Jika role bukan admin, redirect ke halaman yang sesuai (misalnya, home)
   if (token?.role !== "admin" && pathname.startsWith("/admin")) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
+  if (token?.role !== "author" && pathname.startsWith("/author")) {
+    return NextResponse.redirect(new URL("/", req.url));
+  }
   return NextResponse.next();
 }
 
 // Tentukan route yang diproses middleware
 export const config = {
-  matcher: ["/", "/admin/:path*", "/auth/:path*"],
+  matcher: ["/", "/admin/:path*", "/auth/:path*", "/author/:path*"],
 };

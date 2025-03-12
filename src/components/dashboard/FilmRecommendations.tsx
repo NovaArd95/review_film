@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import { Star, Plus, Play, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -17,6 +17,28 @@ interface FilmRecommendationsProps {
 
 const FilmRecommendations: React.FC<FilmRecommendationsProps> = ({ recommendations }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isScrolledLeft, setIsScrolledLeft] = useState(true);
+  const [isScrolledRight, setIsScrolledRight] = useState(false);
+
+  const checkScrollPosition = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      setIsScrolledLeft(scrollLeft === 0);
+      setIsScrolledRight(scrollLeft + clientWidth >= scrollWidth);
+    }
+  };
+
+  useEffect(() => {
+    checkScrollPosition();
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.addEventListener("scroll", checkScrollPosition);
+    }
+    return () => {
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.removeEventListener("scroll", checkScrollPosition);
+      }
+    };
+  }, []);
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
@@ -37,11 +59,16 @@ const FilmRecommendations: React.FC<FilmRecommendationsProps> = ({ recommendatio
       {/* Tombol navigasi kiri */}
       <button
         onClick={scrollLeft}
-        className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-2 rounded-full z-20"
+        className={`absolute left-0 top-1/2 transform -translate-y-12 bg-black/50 hover:bg-black/70 p-2 rounded-full z-20 ${isScrolledLeft ? 'hidden' : ''}`}
         style={{ marginLeft: "-1.5rem" }} // Sesuaikan margin agar tidak menabrak film
       >
         <ChevronLeft className="w-6 h-6 text-white" />
       </button>
+
+      {/* Gradient kiri */}
+      {!isScrolledLeft && (
+        <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r to-transparent pointer-events-none"></div>
+      )}
 
       {/* Container untuk scroll horizontal */}
       <div
@@ -52,7 +79,6 @@ const FilmRecommendations: React.FC<FilmRecommendationsProps> = ({ recommendatio
         {recommendations.map((film) => (
           <Link key={film.id_film} href={`/films/${film.id_film}`}>
             <div className="relative group cursor-pointer flex-shrink-0 w-48">
-             
               {/* Gambar film */}
               <div className="relative overflow-hidden rounded-lg shadow-lg">
                 <img
@@ -71,33 +97,21 @@ const FilmRecommendations: React.FC<FilmRecommendationsProps> = ({ recommendatio
                 </div>
               </div>
 
-              {/* Tombol Watchlist dan Trailer */}
-              <div className="mt-4 space-y-2">
-                <button
-                  className="w-full bg-white/10 hover:bg-white/20 text-white py-2 rounded-md flex items-center justify-center gap-2"
-                  onClick={(e) => e.preventDefault()}
-                >
-                  <Plus className="w-4 h-4" />
-                  Watchlist
-                </button>
 
-                <button
-                  className="w-full bg-white/10 hover:bg-white/20 text-white py-2 rounded-md flex items-center justify-center gap-2"
-                  onClick={(e) => e.preventDefault()}
-                >
-                  <Play className="w-4 h-4" />
-                  Trailer
-                </button>
-              </div>
             </div>
           </Link>
         ))}
       </div>
 
+      {/* Gradient kanan */}
+      {!isScrolledRight && (
+        <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent pointer-events-none"></div>
+      )}
+
       {/* Tombol navigasi kanan */}
       <button
         onClick={scrollRight}
-        className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-2 rounded-full z-20"
+        className={`absolute right-0 top-1/2 transform -translate-y-12 bg-black/50 hover:bg-black/70 p-2 rounded-full z-20 ${isScrolledRight ? 'hidden' : ''}`}
         style={{ marginRight: "-1.5rem" }} // Sesuaikan margin agar tidak menabrak film
       >
         <ChevronRight className="w-6 h-6 text-white" />

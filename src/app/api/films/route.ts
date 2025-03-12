@@ -78,9 +78,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-
-
-
 export async function POST(request: NextRequest) {
   try {
     const token = await getToken({ req: request });
@@ -186,11 +183,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-
-
-
-
 
 export async function PUT(request: NextRequest) {
   try {
