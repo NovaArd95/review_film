@@ -19,6 +19,33 @@ const FilmRecommendations: React.FC<FilmRecommendationsProps> = ({ recommendatio
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isScrolledLeft, setIsScrolledLeft] = useState(true);
   const [isScrolledRight, setIsScrolledRight] = useState(false);
+  const [ratings, setRatings] = useState<{ [key: number]: number }>({});
+
+  // Fungsi untuk mengambil rating dari API
+  const fetchRatings = async (filmId: number) => {
+    try {
+      const response = await fetch(`/api/ratings?film_id=${filmId}`);
+      const data = await response.json();
+      return data.average_rating || 0;
+    } catch (error) {
+      console.error("Error fetching rating:", error);
+      return 0;
+    }
+  };
+
+  // Ambil rating untuk semua film saat komponen dimuat
+  useEffect(() => {
+    const fetchAllRatings = async () => {
+      const ratingsData: { [key: number]: number } = {};
+      for (const film of recommendations) {
+        const rating = await fetchRatings(film.id_film);
+        ratingsData[film.id_film] = rating;
+      }
+      setRatings(ratingsData);
+    };
+
+    fetchAllRatings();
+  }, [recommendations]);
 
   const checkScrollPosition = () => {
     if (scrollContainerRef.current) {
@@ -50,6 +77,14 @@ const FilmRecommendations: React.FC<FilmRecommendationsProps> = ({ recommendatio
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({ left: 200, behavior: "smooth" });
     }
+  };
+
+  // Fungsi untuk menentukan warna rating
+  const getRatingColor = (rating: number | undefined) => {
+    if (!rating) return '#ffffff'; // Putih untuk rating 0
+    if (rating < 50) return '#ff0000'; // Merah untuk rating rendah
+    if (rating < 75) return '#ffff00'; // Kuning untuk rating sedang
+    return '#00ff00'; // Hijau untuk rating tinggi
   };
 
   return (
@@ -90,14 +125,22 @@ const FilmRecommendations: React.FC<FilmRecommendationsProps> = ({ recommendatio
                 {/* Informasi film di bagian bawah gambar */}
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
                   <div className="flex items-center gap-2 text-white mb-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-bold">{film.rating || "N/A"}</span>
+                    {/* Container untuk lingkaran rating kecil */}
+                    <div
+                      className="rating-circle-sm"
+                      style={{
+                        '--rating-percent': ratings[film.id_film] || 0,
+                        '--rating-color': getRatingColor(ratings[film.id_film]),
+                      } as React.CSSProperties}
+                    >
+                      <div className="rating-text-sm">
+                        {ratings[film.id_film] ? `${Math.round(ratings[film.id_film])}%` : 'N/A'}
+                      </div>
+                    </div>
                   </div>
                   <p className="text-sm text-white font-bold">{film.title}</p>
                 </div>
               </div>
-
-
             </div>
           </Link>
         ))}

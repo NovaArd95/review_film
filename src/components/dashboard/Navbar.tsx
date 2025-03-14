@@ -91,9 +91,9 @@ const Navbar: React.FC = () => {
             </Link>
             <div className="hidden md:flex items-center space-x-6">
               <Link
-                href="/search"
+                href="/category"
                 className={`text-black hover:text-gray-900 relative ${
-                  pathname === "/search" ?  "font-bold text-black after:w-full" : "after:w-0"
+                  pathname === "/category" ?  "font-bold text-black after:w-full" : "after:w-0"
                 } after:absolute after:-bottom-2 after:left-0 after:h-[3px] after:bg-black after:transition-all after:duration-300`}
               >
                 Category Film

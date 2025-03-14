@@ -1,17 +1,19 @@
 'use client';
-import React, { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import Image from "next/image";
-import ImageFilmDetails from "@/components/author/film/ImageFilmDetails";
-import FilmTrailerModal from "@/components/dashboard/FilmTrailerModal";
-import { FaHeart, FaList, FaPlay } from "react-icons/fa";
-import Comments from "@/components/dashboard/Comments";
-import FilmRecommendations from "@/components/dashboard/FilmRecommendations";
-import OverviewModal from "@/components/dashboard/OverviewModal";
-import FooterFilms from "@/components/dashboard/FooterFilms";
-import { useSession } from "next-auth/react";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import Image from 'next/image';
+import ImageFilmDetails from '@/components/author/film/ImageFilmDetails';
+import FilmTrailerModal from '@/components/dashboard/FilmTrailerModal';
+import { FaHeart, FaList, FaPlay } from 'react-icons/fa';
+import Comments from '@/components/dashboard/Comments';
+import FilmRecommendations from '@/components/dashboard/FilmRecommendations';
+import OverviewModal from '@/components/dashboard/OverviewModal';
+import FooterFilms from '@/components/dashboard/FooterFilms';
+import { useSession } from 'next-auth/react';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import RatingModal from '@/components/dashboard/RatingModal';
 
 interface Film {
   id_film: number;
@@ -47,10 +49,55 @@ const FilmDetail = () => {
   const [recommendations, setRecommendations] = useState<Film[]>([]);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [isInFavorite, setIsInFavorite] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [averageRating, setAverageRating] = useState(0);
+  const [userRating, setUserRating] = useState<number | null>(null);
+  const getRatingColor = (rating: number | undefined) => {
+    if (!rating) return '#ffffff'; // Putih untuk rating 0
+    if (rating < 50) return '#ff0000'; // Merah untuk rating rendah
+    if (rating < 75) return '#ffff00'; // Kuning untuk rating sedang
+    return '#00ff00'; // Hijau untuk rating tinggi
+  };
+
+
 
   const params = useParams();
   const filmId = params.id;
   const { data: session, status } = useSession() as { data: ExtendedSession | null, status: string };
+  useEffect(() => {
+    if (status === 'authenticated' && filmId) {
+      fetchUserRating(); // Ambil rating pengguna saat komponen dimuat atau session berubah
+    }
+  }, [filmId, status, session]);
+  const fetchUserRating = async () => {
+    try {
+      const response = await fetch(`/api/ratings/user?film_id=${filmId}`);
+      const data = await response.json();
+      setUserRating(data.rating || null); // Set ke null jika tidak ada rating
+    } catch (error) {
+      console.error('Error fetching user rating:', error);
+      setUserRating(null); // Set ke null jika terjadi error
+    }
+  };
+
+  const fetchAverageRating = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/ratings?film_id=${filmId}`);
+      
+      // Periksa status respons
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+  
+      // Periksa konten respons
+      const data = await response.json();
+      const rating = parseFloat(data.average_rating);
+      setAverageRating(isNaN(rating) ? 0 : rating);
+    } catch (error) {
+      console.error('Error fetching average rating:', error);
+      setAverageRating(0); // Set default ke 0 jika terjadi error
+    }
+  };
 
   useEffect(() => {
     if (!filmId) return;
@@ -65,7 +112,7 @@ const FilmDetail = () => {
           setIsOverviewLong(true);
         }
       } catch (error) {
-        console.error("Error fetching film data:", error);
+        console.error('Error fetching film data:', error);
       } finally {
         setLoading(false);
       }
@@ -78,12 +125,13 @@ const FilmDetail = () => {
         const filteredRecommendations = data.filter((film) => film.id_film !== Number(filmId));
         setRecommendations(filteredRecommendations.slice(0, 10));
       } catch (error) {
-        console.error("Error fetching recommendations:", error);
+        console.error('Error fetching recommendations:', error);
       }
     };
 
     fetchFilm();
     fetchRecommendations();
+    fetchAverageRating();
   }, [filmId]);
 
   useEffect(() => {
@@ -191,6 +239,30 @@ const FilmDetail = () => {
     return `${hours}h ${remainingMinutes}m`;
   };
 
+  const handleRatingSubmit = async (rating: number | null) => {
+    try {
+      const response = await fetch('/api/ratings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ film_id: filmId, rating }),
+      });
+  
+      if (response.ok) {
+        toast.success(rating === null ? 'Rating dihapus!' : 'Rating berhasil disimpan!');
+        await fetchAverageRating(); // Perbarui averageRating
+        await fetchUserRating(); // Perbarui userRating
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Gagal menyimpan rating');
+      }
+    } catch (error) {
+      toast.error('Terjadi kesalahan');
+    }
+  };
+
+
   if (loading)
     return (
       <div className="flex items-center justify-center mt-24">
@@ -198,6 +270,7 @@ const FilmDetail = () => {
       </div>
     );
   if (!film) return <p className="text-black">Film not found</p>;
+
 
   return (
     <div className="relative bg-white min-h-screen text-white flex flex-col items-center">
@@ -233,13 +306,41 @@ const FilmDetail = () => {
           <p className="text-gray-400 text-sm mb-4">
             {new Date(film.tanggal_rilis).toLocaleDateString()} • {film.genre_names.join(", ")} • {formatDuration(film.durasi)}
           </p>
+                    <div className="flex items-center space-x-4 mb-6">
+  {/* Container untuk lingkaran rating (User Score) */}
+  <div
+    className="rating-circle"
+    style={{
+      '--rating-percent': averageRating || 0,
+      '--rating-color': getRatingColor(averageRating),
+    } as React.CSSProperties}
+  >
+    <div className="rating-text">
+      {typeof averageRating === 'number' ? `${Math.round(averageRating)}%` : "N/A"}
+    </div>
+  </div>
+  <div className="flex flex-col">
+    <span className="text-lg font-bold">User Score</span>
+</div>
 
-          <div className="flex items-center space-x-4 mb-6">
-            <div className="w-14 h-14 bg-white text-black font-bold text-xl flex items-center justify-center rounded-full">
-              {film.rating ? `${film.rating}%` : "N/A"}
-            </div>
-            <span className="text-lg">User Score</span>
-          </div>
+                    {/* Tombol Rating */}
+                    {userRating === null ? (
+                      <button
+                        onClick={() => setShowRatingModal(true)}
+                        className="bg-gray-800 text-white px-4 py-2 rounded-xl  bg-opacity-60 hover:bg-gray-700 transition-colors duration-300"
+                      >
+                        What's your rating?
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setShowRatingModal(true)}
+                        className="bg-gray-800 text-white px-4 py-2 rounded-xl bg-opacity-60 hover:bg-slate-700 transition-colors duration-300"
+                      >
+                        Your Rating {Math.round(userRating)}%
+                      </button>
+                    )}
+                  </div>
+                  
 
           {/* Action Buttons */}
           <div className="flex space-x-6 mb-6">
@@ -312,6 +413,16 @@ const FilmDetail = () => {
       {showModal && <ImageFilmDetails imageUrl={film.cover_image} title={film.title} onClose={() => setShowModal(false)} />}
       {showTrailer && <FilmTrailerModal trailerUrl={film.trailer_url} onClose={() => setShowTrailer(false)} />}
       {showOverviewModal && <OverviewModal overview={film.description} onClose={() => setShowOverviewModal(false)} />}
+      {showRatingModal && (
+        <RatingModal
+          isOpen={showRatingModal}
+          onClose={() => setShowRatingModal(false)}
+          filmId={film?.id_film || 0}
+          userRating={userRating}
+          onRatingSubmit={handleRatingSubmit}
+        />
+      )}
+      
       
       {/* Add FooterFilms */}
       <div className="w-full">

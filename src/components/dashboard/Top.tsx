@@ -44,16 +44,38 @@ const TopMovies = () => {
   const [watchlist, setWatchlist] = useState<number[]>([]);
   const [favorites, setFavorites] = useState<number[]>([]);
   const { data: session, status } = useSession() as { data: ExtendedSession | null, status: string };
-
+  const getRatingColor = (rating: number | undefined) => {
+    if (!rating) return '#ffffff'; // Putih untuk rating 0
+    if (rating < 50) return '#ff0000'; // Merah untuk rating rendah
+    if (rating < 75) return '#ffff00'; // Kuning untuk rating sedang
+    return '#00ff00'; // Hijau untuk rating tinggi
+  };
   useEffect(() => {
     const fetchMovies = async () => {
       try {
+        // Ambil data film
         const response = await fetch('/api/films/all');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
         const data: Film[] = await response.json();
-        setMovies(data);
+
+        // Ambil rating untuk setiap film
+        const moviesWithRatings = await Promise.all(
+          data.map(async (movie) => {
+            const ratingResponse = await fetch(`/api/ratings?film_id=${movie.id_film}`);
+            if (!ratingResponse.ok) {
+              throw new Error('Failed to fetch rating');
+            }
+            const ratingData = await ratingResponse.json();
+            return {
+              ...movie,
+              rating: ratingData.average_rating || 0, // Default ke 0 jika tidak ada rating
+            };
+          })
+        );
+
+        setMovies(moviesWithRatings);
       } catch (err) {
         if (err instanceof Error) {
           setError(err);
@@ -172,8 +194,6 @@ const TopMovies = () => {
     }
   };
 
-  
-
   if (error) {
     return <p>{error.message}</p>;
   }
@@ -225,15 +245,24 @@ const TopMovies = () => {
                   className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
                 />
 
-                {/* Informasi film di bagian bawah gambar */}
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
                   <div className="flex items-center gap-2 text-white mb-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-bold">{movie.rating || 'N/A'}</span>
+                    {/* Container untuk lingkaran rating kecil */}
+                    <div
+                      className="rating-circle-sm"
+                      style={{
+                        '--rating-percent': movie.rating || 0,
+                        '--rating-color': getRatingColor(movie.rating),
+                      } as React.CSSProperties}
+                    >
+                      <div className="rating-text-sm">
+                        {movie.rating ? `${Math.round(movie.rating)}%` : 'N/A'}
+                      </div>
+                    </div>
                   </div>
                   <p className="text-sm text-white font-bold">{index + 1}. {movie.title}</p>
                 </div>
-              </div>
+                </div>
 
               {/* Tombol Watchlist dan Trailer */}
               <div className="mt-4 space-y-2">
