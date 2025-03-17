@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Film, Users, Star } from 'lucide-react';
-
+import AuthorRequestsTable from '@/components/admin/home/AuthorRequest';
 interface Stats {
   totalFilms: number;
   totalUsers: number;
@@ -22,7 +22,7 @@ export default function HomePage() {
     const fetchStats = async () => {
       try {
         // Fetch films count
-        const filmsResponse = await fetch('/api/films');
+        const filmsResponse = await fetch('/api/films/all');
         const filmsData = await filmsResponse.json();
         
         // Fetch users count
@@ -101,10 +101,9 @@ export default function HomePage() {
         {/* Recent Activity Section */}
         <div className="mt-8">
           <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
-          <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-            {/* Add your recent activity content here */}
-            <p className="text-gray-500">Coming soon...</p>
-          </div>
+          <div>
+      <AuthorRequestsTable />
+    </div>
         </div>
       </div>
     </div>

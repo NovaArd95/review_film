@@ -204,7 +204,7 @@ const TopMovies = () => {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-white text-2xl font-bold flex items-center gap-2">
             <span className="w-1 h-8 bg-yellow-500"></span>
-            Top 10 Rating FilmReview
+            Top Movies FilmReview
           </h1>
         </div>
 

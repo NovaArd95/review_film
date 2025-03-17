@@ -10,6 +10,7 @@ interface User {
   username: string;
   profile_picture: string;
   email: string;
+  role: string; // Tambahkan role ke interface User
 }
 
 interface SettingsUserProps {
@@ -25,10 +26,31 @@ const SettingsUser = ({ user, onClose }: SettingsUserProps) => {
   const [error, setError] = useState<string | null>(null);
   const { data: session, update } = useSession();
 
-  // Add new state for author request
+  // State untuk permintaan author
   const [isRequestingAuthor, setIsRequestingAuthor] = useState(false);
   const [requestStatus, setRequestStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('none');
 
+  // Ambil status permintaan author saat komponen dimuat
+  useEffect(() => {
+    const fetchAuthorRequestStatus = async () => {
+      try {
+        const response = await fetch(`/api/author-requests?userId=${user.id}`);
+        const data = await response.json();
+
+        if (data.length > 0) {
+          setRequestStatus(data[0].status); // Set status permintaan
+        } else if (user.role === 'author') {
+          setRequestStatus('approved'); // Jika user sudah menjadi author
+        }
+      } catch (error) {
+        console.error('Error fetching author request status:', error);
+      }
+    };
+
+    fetchAuthorRequestStatus();
+  }, [user.id, user.role]);
+
+  // Handler untuk mengubah avatar
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -48,12 +70,12 @@ const SettingsUser = ({ user, onClose }: SettingsUserProps) => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || 'Gagal mengupdate avatar');
 
-        // Update session with complete user data
+        // Update session dengan data user yang baru
         await update({
           ...session,
-          user: data.user
+          user: data.user,
         });
- 
+
         setProfilePicture(data.user.image);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
@@ -63,6 +85,7 @@ const SettingsUser = ({ user, onClose }: SettingsUserProps) => {
     }
   };
 
+  // Handler untuk mengupdate username
   const handleUsernameUpdate = async (newUsername: string) => {
     setIsLoading(true);
     setError(null);
@@ -77,10 +100,10 @@ const SettingsUser = ({ user, onClose }: SettingsUserProps) => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Gagal mengupdate username');
 
-      // Update session with complete user data
+      // Update session dengan data user yang baru
       await update({
         ...session,
-        user: data.user
+        user: data.user,
       });
 
       setUsername(data.user.name);
@@ -92,34 +115,36 @@ const SettingsUser = ({ user, onClose }: SettingsUserProps) => {
     }
   };
 
-  // Add request author handler
+  // Handler untuk mengirim permintaan author
   const handleRequestAuthor = async () => {
-    setIsLoading(true);
-    setError(null);
+  setIsLoading(true);
+  setError(null);
 
-    try {
-      const response = await fetch('/api/author-requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          userId: user.id,
-          username: username,
-          email: user.email 
-        }),
-      });
+  try {
+    const response = await fetch('/api/author-requests', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Jika Anda menggunakan NextAuth.js, token akan otomatis dikirim
+      },
+      body: JSON.stringify({
+        // Tidak perlu mengirim userId, karena diambil dari token
+      }),
+    });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Gagal mengirim permintaan');
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Gagal mengirim permintaan');
 
-      setRequestStatus('pending');
-      setIsRequestingAuthor(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    setRequestStatus('pending');
+    setIsRequestingAuthor(false);
+  } catch (err) {
+    setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
+  // Handler untuk menyimpan perubahan
   const handleSaveChanges = async () => {
     setIsLoading(true);
     setError(null);
@@ -144,7 +169,7 @@ const SettingsUser = ({ user, onClose }: SettingsUserProps) => {
     }
   };
 
-  // Add click outside handler
+  // Handler untuk klik di luar modal
   const handleOutsideClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -159,7 +184,7 @@ const SettingsUser = ({ user, onClose }: SettingsUserProps) => {
         exit={{ opacity: 0, scale: 0.9 }}
         className="bg-white rounded-lg p-6 w-full max-w-md relative"
       >
-        {/* Close button */}
+        {/* Tombol tutup */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
@@ -167,9 +192,9 @@ const SettingsUser = ({ user, onClose }: SettingsUserProps) => {
           <X size={20} />
         </button>
 
-        <h2 className="text-xl font-semibold mb-6 ">Setting User</h2>
+        <h2 className="text-xl font-semibold mb-6">Setting User</h2>
 
-        {/* Layout baru: Avatar di kiri, informasi di kanan */}
+        {/* Layout: Avatar di kiri, informasi di kanan */}
         <div className="flex space-x-8">
           {/* Bagian Avatar */}
           <div className="flex flex-col items-center space-y-2">
@@ -199,7 +224,7 @@ const SettingsUser = ({ user, onClose }: SettingsUserProps) => {
             </label>
           </div>
 
-          {/* Bagian Informasi User dengan Label */}
+          {/* Bagian Informasi User */}
           <div className="flex-1 space-y-6">
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Username</p>
@@ -215,12 +240,11 @@ const SettingsUser = ({ user, onClose }: SettingsUserProps) => {
               <p className="text-xs text-gray-500">Email</p>
               <p className="text-sm font-medium">{user.email}</p>
             </div>
-            {/* Author Request Section */}
+
+            {/* Bagian Permintaan Author */}
             <div className="space-y-1 pt-4 border-t border-gray-200">
-              <p className="text-xs text-gray-500">Role Status</p>
               {requestStatus === 'none' && (
                 <div className="flex flex-col gap-1">
-                  <p className="text-sm font-medium">User</p>
                   <button
                     onClick={() => setIsRequestingAuthor(true)}
                     className="text-xs text-blue-600 hover:text-blue-500"
@@ -259,7 +283,7 @@ const SettingsUser = ({ user, onClose }: SettingsUserProps) => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               className="bg-white rounded-lg p-6 w-full max-w-md relative"
-              onClick={e => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
             >
               <button
                 onClick={() => setIsEditingUsername(false)}
@@ -267,7 +291,7 @@ const SettingsUser = ({ user, onClose }: SettingsUserProps) => {
               >
                 <X size={20} />
               </button>
-              
+
               <h2 className="text-xl font-semibold mb-4">Edit Username</h2>
               <input
                 type="text"
@@ -298,7 +322,7 @@ const SettingsUser = ({ user, onClose }: SettingsUserProps) => {
           </div>
         )}
 
-        {/* Author Request Modal */}
+        {/* Modal untuk permintaan author */}
         {isRequestingAuthor && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={handleOutsideClick}>
             <motion.div
@@ -306,7 +330,7 @@ const SettingsUser = ({ user, onClose }: SettingsUserProps) => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               className="bg-white rounded-lg p-6 w-full max-w-md relative"
-              onClick={e => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
             >
               <button
                 onClick={() => setIsRequestingAuthor(false)}
@@ -314,15 +338,15 @@ const SettingsUser = ({ user, onClose }: SettingsUserProps) => {
               >
                 <X size={20} />
               </button>
-              
+
               <h2 className="text-xl font-semibold mb-4">Request Author Role</h2>
               <p className="text-sm text-gray-600 mb-4">
                 By becoming an author, you'll be able to create and publish film reviews.
                 Your request will be reviewed by our administrators.
               </p>
-              
+
               {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-              
+
               <div className="flex justify-end space-x-3 mt-4">
                 <button
                   type="button"

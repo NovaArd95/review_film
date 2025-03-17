@@ -46,7 +46,8 @@ const FilmDetails: React.FC<FilmDetailsProps> = ({ film, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 z-50"
+    >
       <div className="bg-white rounded-lg p-4 w-full max-w-5xl max-h-[95vh] overflow-y-auto ">
         <h2 className="text-xl font-bold mb-4">{film.title}</h2>
 

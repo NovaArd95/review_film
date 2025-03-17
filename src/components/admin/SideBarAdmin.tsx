@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { LuTable } from "react-icons/lu";
 import { HiHome } from "react-icons/hi";
 import { FiLogOut } from "react-icons/fi";
@@ -21,6 +22,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen }) => {
   const { data: session } = useSession();
   const [tablesOpen, setTablesOpen] = useState(true);
+  const pathname = usePathname(); // Menangkap halaman saat ini
 
   return (
     <aside
@@ -50,7 +52,9 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen }) => {
           <li>
             <Link
               href="/admin/home"
-              className="flex items-center px-4 py-2 text-[#DEE4EE] hover:bg-[#333A48] rounded-lg transition-colors duration-200"
+              className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${
+                pathname === "/admin/home" ? "bg-[#333A48] text-white" : "text-[#DEE4EE] hover:bg-[#333A48]"
+              }`}
             >
               <HiHome className="w-5 h-5" />
               <span className="ml-3">Home</span>
@@ -84,19 +88,13 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen }) => {
               }`}
             >
               <ul className="pl-4 mt-2 space-y-2">
-                <li>
-                  <Link
-                    href="/film"
-                    className="flex items-center px-4 py-2 text-[#DEE4EE] hover:bg-[#333A48] rounded-lg transition-colors duration-200"
-                  >
-                    <MdMovie className="w-4 h-4" />
-                    <span className="ml-3">Film</span>
-                  </Link>
-                </li>
+               
                 <li>
                   <Link
                     href="/admin/genre"
-                    className="flex items-center px-4 py-2 text-[#DEE4EE] hover:bg-[#333A48] rounded-lg transition-colors duration-200"
+                    className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${
+                      pathname === "/admin/genre" ? "bg-[#333A48] text-white" : "text-[#DEE4EE] hover:bg-[#333A48]"
+                    }`}
                   >
                     <BiCategoryAlt className="w-4 h-4" />
                     <span className="ml-3">Genre</span>
@@ -105,7 +103,9 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen }) => {
                 <li>
                   <Link
                     href="/admin/negara"
-                    className="flex items-center px-4 py-2 text-[#DEE4EE] hover:bg-[#333A48] rounded-lg transition-colors duration-200"
+                    className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${
+                      pathname === "/admin/negara" ? "bg-[#333A48] text-white" : "text-[#DEE4EE] hover:bg-[#333A48]"
+                    }`}
                   >
                     <GiWorld className="w-4 h-4" />
                     <span className="ml-3">Negara</span>
@@ -114,7 +114,9 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen }) => {
                 <li>
                   <Link
                     href="/admin/tahun"
-                    className="flex items-center px-4 py-2 text-[#DEE4EE] hover:bg-[#333A48] rounded-lg transition-colors duration-200"
+                    className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${
+                      pathname === "/admin/tahun" ? "bg-[#333A48] text-white" : "text-[#DEE4EE] hover:bg-[#333A48]"
+                    }`}
                   >
                     <BsCalendarDate className="w-4 h-4" />
                     <span className="ml-3">Tahun</span>
@@ -123,7 +125,9 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen }) => {
                 <li>
                   <Link
                     href="/admin/users"
-                    className="flex items-center px-4 py-2 text-[#DEE4EE] hover:bg-[#333A48] rounded-lg transition-colors duration-200"
+                    className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${
+                      pathname === "/admin/users" ? "bg-[#333A48] text-white" : "text-[#DEE4EE] hover:bg-[#333A48]"
+                    }`}
                   >
                     <User className="w-4 h-4" />
                     <span className="ml-3">Users</span>

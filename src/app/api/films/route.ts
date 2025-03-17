@@ -321,18 +321,15 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const token = await getToken({ req: request });
-    console.log('Token in API:', token); // Debugging
 
-    // Perbaiki pengecekan token
     if (!token || !token.id || !token.role) {
-      console.error('Token tidak valid atau tidak memiliki id/role.');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const { id: userId, role } = token; // Gunakan token.id sebagai userId
+    const { id: userId, role } = token;
 
     const url = new URL(request.url);
     const id = url.searchParams.get('id');
@@ -356,6 +353,18 @@ export async function DELETE(request: NextRequest) {
         { status: 403 }
       );
     }
+
+    // Hapus data dari watchlist yang merujuk ke film ini
+    await executeQuery({
+      query: 'DELETE FROM watchlist WHERE film_id = ?',
+      values: [parseInt(id)],
+    });
+    // Hapus data dari favorites yang merujuk ke film ini
+    await executeQuery({
+      query: 'DELETE FROM favorites WHERE film_id = ?',
+      values: [parseInt(id)],
+    });
+
     // Hapus genre-genre film
     await executeQuery({
       query: 'DELETE FROM film_genres WHERE film_id = ?',

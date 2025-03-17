@@ -1,6 +1,5 @@
 import HeroSection from '../components/dashboard/HeroSection'
 import TopMovies from '@/components/dashboard/Top'
-import Trending from '@/components/dashboard/Trending'
 import Footer from '@/components/dashboard/Footer'
 export default function Page() {
   return (
@@ -8,7 +7,7 @@ export default function Page() {
       <div className="  ">
         <HeroSection />
         <TopMovies />
-   <Trending />
+   
    <Footer />
       </div>
     </main>

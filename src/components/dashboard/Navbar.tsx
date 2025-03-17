@@ -242,6 +242,7 @@ const Navbar: React.FC = () => {
             username: session.user.name || 'Guest',
             profile_picture: session.user.image || '',
             email: session.user.email || 'user@example.com',
+            role: session.user.role || 'user',
           }}
           onClose={() => {
             setShowSettings(false);
