@@ -173,3 +173,15 @@
 .slider-container:hover .slider-value {
   display: block;
 }
+
+
+/* Contoh CSS tambahan */
+.notification-item {
+  max-width: 300px; /* Atur lebar maksimum */
+}
+
+.notification-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -31,7 +31,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/ratings
 export async function POST(request: NextRequest) {
   try {
     const token = await getToken({ req: request });

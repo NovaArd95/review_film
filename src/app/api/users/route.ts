@@ -10,6 +10,7 @@ interface User {
   role: 'user' | 'author' | 'admin';
   age?: number;
   profile_picture?: string;
+  telpon?: string; // Tambahkan ini
   created_at?: string;
 }
 
@@ -23,6 +24,7 @@ export async function POST(request: Request) {
     const password = formData.get("password") as string;
     const role = formData.get("role") as string;
     const age = formData.get("age") ? parseInt(formData.get("age") as string) : null;
+    const telpon = formData.get("telpon") as string | null; // Ambil data telpon
     const profile_picture = formData.get("profile_picture") as File | null;
 
     if (!username || !email || !password || !role) {
@@ -43,10 +45,9 @@ export async function POST(request: Request) {
     }
 
     const result = await executeQuery<{ affectedRows: number }>({
-      query: 'INSERT INTO users (username, email, password, role, age, profile_picture) VALUES (?, ?, ?, ?, ?, ?)',
-      values: [username, email, password, role, age, profilePicturePath],
+      query: 'INSERT INTO users (username, email, password, role, age, telpon, profile_picture) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      values: [username, email, password, role, age, telpon, profilePicturePath],
     });
-
     return NextResponse.json({ message: 'User berhasil ditambahkan.', result }, { status: 201 });
   } catch (error) {
     console.error('Error adding user:', error);

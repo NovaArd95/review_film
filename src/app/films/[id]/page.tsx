@@ -307,21 +307,21 @@ const FilmDetail = () => {
             {new Date(film.tanggal_rilis).toLocaleDateString()} • {film.genre_names.join(", ")} • {formatDuration(film.durasi)}
           </p>
                     <div className="flex items-center space-x-4 mb-6">
-  {/* Container untuk lingkaran rating (User Score) */}
-  <div
-    className="rating-circle"
-    style={{
-      '--rating-percent': averageRating || 0,
-      '--rating-color': getRatingColor(averageRating),
-    } as React.CSSProperties}
-  >
-    <div className="rating-text">
-      {typeof averageRating === 'number' ? `${Math.round(averageRating)}%` : "N/A"}
-    </div>
-  </div>
-  <div className="flex flex-col">
-    <span className="text-lg font-bold">User Score</span>
-</div>
+                {/* Container untuk lingkaran rating (User Score) */}
+                <div
+                  className="rating-circle"
+                  style={{
+                    '--rating-percent': averageRating || 0,
+                    '--rating-color': getRatingColor(averageRating),
+                  } as React.CSSProperties}
+                >
+                  <div className="rating-text">
+                    {typeof averageRating === 'number' ? `${Math.round(averageRating)}%` : "N/A"}
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-lg font-bold">User Score</span>
+              </div>
 
                     {/* Tombol Rating */}
                     {userRating === null ? (

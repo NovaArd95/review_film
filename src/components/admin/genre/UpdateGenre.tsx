@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Pencil, Save } from "lucide-react"; // Import ikon dari Lucide React
+import { Pencil, Save } from "lucide-react";
+import { toast } from "react-toastify";
 
 interface UpdateGenreProps {
   id_genre: number | null;
@@ -33,27 +34,26 @@ export default function UpdateGenre({ id_genre, nama_genre, onSuccess, onClose }
       });
 
       if (response.ok) {
+        toast.success("Genre berhasil diperbarui!");
         onSuccess();
-        onClose();
+        window.location.reload(); // Auto-reload setelah berhasil
       } else {
         const result = await response.json();
-        console.error(result.error);
+        toast.error(result.error || "Terjadi kesalahan saat memperbarui genre.");
       }
     } catch (error) {
-      console.error("Error updating genre:", error);
+      toast.error("Terjadi kesalahan saat memperbarui genre.");
     }
   };
 
   return (
     <dialog ref={modalRef} className="modal backdrop-blur-sm backdrop-brightness-50 backdrop-opacity-75">
       <div className="modal-box">
-        {/* Header dengan ikon edit di tengah */}
         <div className="flex flex-col items-center">
           <Pencil className="w-8 h-8 text-gray-700" />
           <h3 className="font-bold text-lg mt-2">Update Genre</h3>
         </div>
 
-        {/* Input */}
         <input
           type="text"
           value={editValue}
@@ -61,7 +61,6 @@ export default function UpdateGenre({ id_genre, nama_genre, onSuccess, onClose }
           className="input input-bordered w-full mt-4"
         />
 
-        {/* Tombol Aksi */}
         <div className="modal-action flex justify-center gap-3">
           <button className="btn bg-black text-white hover:bg-gray-800" onClick={onClose}>
             Cancel

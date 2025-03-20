@@ -3,6 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { Trash2, Edit } from 'lucide-react';
 import UpdateTahun from './UpdateTahun';
+import "react-toastify/dist/ReactToastify.css";
+import { toast } from 'react-toastify';
+
 interface TahunTableProps {
     onSuccess?: () => void;
   }
@@ -62,23 +65,35 @@ export default function TahunRilisTable({ onSuccess }: TahunTableProps) {
   
   useEffect(() => {
     fetchTahunRilis();
+    const notif = localStorage.getItem("notif");
+    if (notif) {
+      toast.success(notif);
+      localStorage.removeItem("notif"); // Hapus notifikasi setelah ditampilkan
+    }
   }, []);
 
   const handleDelete = async () => {
     if (selectedId === null) return;
-
+  
     try {
       const response = await fetch(`/api/tahun?id=${selectedId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
+  
       if (response.ok) {
+        toast.success("Tahun berhasil dihapus!");
         fetchTahunRilis();
         closeDeleteModal();
+        window.location.reload();
+      } else {
+        throw new Error("Gagal menghapus tahun.");
       }
     } catch (error) {
-      console.error('Error deleting tahun rilis:', error);
+      toast.error("Gagal menghapus tahun.");
+      console.error("Error deleting tahun rilis:", error);
     }
   };
+  
 
   const handleEdit = async () => {
     if (selectedId === null) return;

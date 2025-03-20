@@ -1,5 +1,7 @@
 'use client';
 import SidebarAuthor from "@/components/admin/SideBarAdmin";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function AdminLayout({
   children,
@@ -15,6 +17,19 @@ export default function AdminLayout({
       <main className="flex-grow p-4">
         {children}
       </main>
+
+      {/* Toast Container untuk Notifikasi */}
+      <ToastContainer 
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   );
 }

@@ -1,27 +1,42 @@
-'use client'
+'use client';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 
 const Dashboard = () => {
-  const images = [
-    '/images/spiderman.png',
-    '/images/Doctor.png',
-    '/images/Avenger.png'
-  ];
-
+  const [images, setImages] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  // Fetch film images from API
+  useEffect(() => {
+    const fetchFilms = async () => {
+      try {
+        const response = await fetch('/api/films/all');
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          // Ambil hanya gambar latar belakang film (gantilah 'bg_image' sesuai dengan key yang benar)
+          const filmImages = data.map((film) => film.bg_image).filter(Boolean);
+          setImages(filmImages);
+        }
+      } catch (error) {
+        console.error('Failed to fetch films:', error);
+      }
+    };
+
+    fetchFilms();
+  }, []);
+
   const handleSlide = useCallback((newIndex: number | ((prevIndex: number) => number)) => {
-    setCurrentIndex((prevIndex) => typeof newIndex === 'function' ? newIndex(prevIndex) : newIndex);
+    setCurrentIndex((prevIndex) => (typeof newIndex === 'function' ? newIndex(prevIndex) : newIndex));
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      handleSlide((prevIndex: number) => (prevIndex + 1) % images.length);
-    }, 7000);
-
-    return () => clearInterval(interval);
-  }, [handleSlide]);
+    if (images.length > 0) {
+      const interval = setInterval(() => {
+        handleSlide((prevIndex: number) => (prevIndex + 1) % images.length);
+      }, 7000);
+      return () => clearInterval(interval);
+    }
+  }, [images, handleSlide]);
 
   const handlePrev = () => {
     handleSlide(currentIndex === 0 ? images.length - 1 : currentIndex - 1);
@@ -30,36 +45,42 @@ const Dashboard = () => {
   const handleNext = () => {
     handleSlide((currentIndex + 1) % images.length);
   };
+  
   const handleExploreClick = () => {
-    const topMoviesSection = document.getElementById('top-movies');
-    if (topMoviesSection) {
-      topMoviesSection.scrollIntoView({ behavior: 'smooth' });
+    const topReleaseSection = document.getElementById('top-release');
+    if (topReleaseSection) {
+      topReleaseSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
   return (
-    <div  id="dashboard" className=" relative min-h-screen bg-black text-white ">
+    <div id="dashboard" className="relative min-h-screen bg-black text-white">
       <div className="relative h-screen overflow-hidden rounded-xl">
         <div className="relative w-full h-full">
-          {images.map((image, index) => (
-            <img
-              key={index}
-              src={image}
-              alt={`Slide ${index + 1}`}
-              className={`absolute top-0 left-0 w-full h-full object-cover transition-all duration-500 ease-in-out ${
-                index === currentIndex 
-                  ? 'opacity-100 translate-x-0' 
-                  : index < currentIndex 
-                  ? 'opacity-0 -translate-x-full' 
-                  : 'opacity-0 translate-x-full'
-              }`}
-            />
-          ))}
+          {images.length > 0 ? (
+            images.map((image, index) => (
+              <img
+                key={index}
+                src={image}
+                alt={`Slide ${index + 1}`}
+                className={`absolute top-0 left-0 w-full h-full object-cover transition-all duration-500 ease-in-out ${
+                  index === currentIndex
+                    ? 'opacity-100 translate-x-0'
+                    : index < currentIndex
+                    ? 'opacity-0 -translate-x-full'
+                    : 'opacity-0 translate-x-full'
+                }`}
+              />
+            ))
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400">Loading...</div>
+          )}
         </div>
 
         {/* Overlay untuk Menggelapkan Gambar */}
         <div className="absolute inset-0 bg-black opacity-80"></div>
 
-        {/* Gradien */}
+        {/* Gradient Effects */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-0 w-full h-1/3 bg-gradient-to-b from-black via-transparent"></div>
           <div className="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-black via-transparent"></div>
@@ -68,31 +89,37 @@ const Dashboard = () => {
         </div>
 
         {/* Navigation Buttons */}
-        <button 
-          onClick={handlePrev}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/20 hover:bg-white/40 text-white p-3 rounded-full z-20 transition-colors duration-300"
-        >
-          <ChevronLeft size={24} />
-        </button>
-        <button 
-          onClick={handleNext}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/20 hover:bg-white/40 text-white p-3 rounded-full z-20 transition-colors duration-300"
-        >
-          <ChevronRight size={24} />
-        </button>
+        {images.length > 1 && (
+          <>
+            <button
+              onClick={handlePrev}
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/20 hover:bg-white/40 text-white p-3 rounded-full z-20 transition-colors duration-300"
+            >
+              <ChevronLeft size={24} />
+            </button>
+            <button
+              onClick={handleNext}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/20 hover:bg-white/40 text-white p-3 rounded-full z-20 transition-colors duration-300"
+            >
+              <ChevronRight size={24} />
+            </button>
+          </>
+        )}
 
         {/* Indicator Dots */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
-          {images.map((_, index) => (
-            <div 
-              key={index} 
-              className={`w-3 h-3 rounded-full cursor-pointer ${
-                index === currentIndex ? 'bg-white' : 'bg-white/50'
-              }`}
-              onClick={() => handleSlide(index)}
-            />
-          ))}
-        </div>
+        {images.length > 1 && (
+          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
+            {images.map((_, index) => (
+              <div
+                key={index}
+                className={`w-3 h-3 rounded-full cursor-pointer ${
+                  index === currentIndex ? 'bg-white' : 'bg-white/50'
+                }`}
+                onClick={() => handleSlide(index)}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Teks Hero */}
         <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 text-center z-10">

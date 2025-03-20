@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import { Trash2, Edit, Search } from "lucide-react";
 import UpdateGenre from "./UpdateGenre";
 import { Input } from "@headlessui/react";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface Genre {
   id_genre: number;
@@ -52,17 +54,16 @@ export default function GenreTable() {
       });
   
       if (response.ok) {
-        fetchGenres(); // Refresh data setelah penghapusan
-        closeDeleteModal();
-        setShowNotification(true); // Tampilkan notifikasi
-  
-        // Sembunyikan notifikasi setelah 3 detik
-        setTimeout(() => {
-          setShowNotification(false);
-        }, 3000);
+        toast.success("Genre berhasil dihapus!"); // Tampilkan notifikasi sukses
+        window.location.reload(); // Auto-reload setelah berhasil
+      } else {
+        const result = await response.json();
+        toast.error(result.error || "Terjadi kesalahan saat menghapus genre."); // Tampilkan notifikasi error
       }
     } catch (error) {
-      console.error("Error deleting genre:", error);
+      toast.error("Terjadi kesalahan saat menghapus genre."); // Tampilkan notifikasi error
+    } finally {
+      closeDeleteModal(); // Tutup modal setelah selesai
     }
   };
   

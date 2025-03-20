@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { FilePlus2, X, UserPlus } from "lucide-react";
+import { toast } from 'react-toastify';
 
 interface AddUserProps {
   onSuccess: () => void;
@@ -15,6 +16,7 @@ export default function AddUser({ onSuccess, onCancel }: AddUserProps) {
     password: "",
     role: "user",
     age: "",
+    telpon: "", // Tambahkan ini
     profile_picture: null as File | null,
   });
 
@@ -42,7 +44,7 @@ export default function AddUser({ onSuccess, onCancel }: AddUserProps) {
     e.preventDefault();
     setLoading(true);
     setError("");
-
+  
     // Validasi sederhana
     if (!formData.username || !formData.email || !formData.password) {
       setError("Semua kolom wajib diisi!");
@@ -59,7 +61,7 @@ export default function AddUser({ onSuccess, onCancel }: AddUserProps) {
       setLoading(false);
       return;
     }
-
+  
     try {
       const formDataToSend = new FormData();
       formDataToSend.append("username", formData.username);
@@ -67,25 +69,32 @@ export default function AddUser({ onSuccess, onCancel }: AddUserProps) {
       formDataToSend.append("password", formData.password);
       formDataToSend.append("role", formData.role);
       if (formData.age) {
-        formDataToSend.append("age", String(formData.age)); // Pastikan dalam bentuk string
+        formDataToSend.append("age", String(formData.age));
+      }
+      if (formData.telpon) {
+        formDataToSend.append("telpon", formData.telpon); // Kirim nomor telepon
       }
       if (formData.profile_picture) {
         formDataToSend.append("profile_picture", formData.profile_picture);
       }
-
+  
       const response = await fetch("/api/users", {
         method: "POST",
         body: formDataToSend,
       });
-
+  
       if (!response.ok) {
         throw new Error("Gagal menambahkan user");
       }
-
+  
+      // Notifikasi sukses
+      toast.success("User berhasil ditambahkan!");
+      window.location.reload(); // Auto reload setelah menghapus
       onSuccess(); // Refresh data tabel
       onCancel(); // Tutup modal
     } catch (err: any) {
       setError(err.message || "Terjadi kesalahan.");
+      toast.error("Gagal menambahkan user");
     } finally {
       setLoading(false);
     }
@@ -126,7 +135,14 @@ export default function AddUser({ onSuccess, onCancel }: AddUserProps) {
             onChange={handleChange}
             required
           />
-
+          <input
+            type="text"
+            name="telpon"
+            className="input input-bordered w-full p-3"
+            placeholder="Nomor Telepon (optional)"
+            value={formData.telpon}
+            onChange={handleChange}
+          />
           <input
             type="password"
             name="password"

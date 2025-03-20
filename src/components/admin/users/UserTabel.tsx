@@ -13,7 +13,8 @@ interface User {
   username: string;
   email: string;
   role: string;
-  profile_picture: string; // Corrected column name
+  telpon?: string; // Tambahkan ini
+  profile_picture: string;
 }
 
 export default function UserTable({ onSuccess }: UserTableProps) {
@@ -49,6 +50,7 @@ export default function UserTable({ onSuccess }: UserTableProps) {
       if (response.ok) {
         fetchUsers();
         closeDeleteModal();
+        window.location.reload(); // Auto reload setelah menghapus
       }
     } catch (error) {
       console.error("Error deleting user:", error);
@@ -77,8 +79,6 @@ export default function UserTable({ onSuccess }: UserTableProps) {
     const modal = document.getElementById("imageModal") as HTMLDialogElement;
     if (modal) modal.close();
   };
-  
-  
 
   if (loading) {
     return (
@@ -98,6 +98,7 @@ export default function UserTable({ onSuccess }: UserTableProps) {
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Username</th>
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Email</th>
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Role</th>
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Telpon</th> {/* Tambahkan ini */}
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Profile</th>
               <th className="px-6 py-4 text-right text-sm font-medium text-gray-600">Actions</th>
             </tr>
@@ -109,6 +110,7 @@ export default function UserTable({ onSuccess }: UserTableProps) {
                 <td className="px-6 py-4 text-sm text-gray-600">{user.username}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{user.role}</td>
+                <td className="px-6 py-4 text-sm text-gray-600">{user.telpon || "-"}</td>
                 <td className="px-6 py-4 text-sm text-gray-600 text-center">
                   <button onClick={() => openImageModal(user.profile_picture)} className="text-gray-500 hover:text-blue-600">
                     <Eye size={18} />

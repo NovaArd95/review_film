@@ -88,7 +88,17 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen }) => {
               }`}
             >
               <ul className="pl-4 mt-2 space-y-2">
-               
+              <li>
+                  <Link
+                    href="/admin/films"
+                    className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${
+                      pathname === "/admin/films" ? "bg-[#333A48] text-white" : "text-[#DEE4EE] hover:bg-[#333A48]"
+                    }`}
+                  >
+                    <MdMovie className="w-4 h-4" />
+                    <span className="ml-3">Films</span>
+                  </Link>
+                </li>
                 <li>
                   <Link
                     href="/admin/genre"

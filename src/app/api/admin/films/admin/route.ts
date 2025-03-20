@@ -1,3 +1,4 @@
+// app/api/admin/films/admin/route.ts
 import { NextResponse, NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { executeQuery } from 'lib/db';
@@ -20,30 +21,29 @@ interface Film {
   genres?: number[];
 }
 
+// GET: Ambil semua film yang dibuat oleh admin yang sedang login
 export async function GET(request: NextRequest) {
   try {
     const token = await getToken({ req: request });
-    console.log('Token in API:', token); // Debugging
 
-    // Perbaiki pengecekan token
     if (!token || !token.id || !token.role) {
-      console.error('Token tidak valid atau tidak memiliki id/role.');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const { id: userId, role } = token; // Gunakan token.id sebagai userId
+    const { role, id } = token;
 
-    if (role !== 'author') {
+    if (role !== 'admin') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 403 }
       );
     }
 
-    let query = `
+    // Query untuk mengambil film yang dibuat oleh admin yang sedang login
+    const query = `
       SELECT 
         films.*, 
         GROUP_CONCAT(genre.nama_genre) AS genre_names,
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
       LEFT JOIN genre ON film_genres.genre_id = genre.id_genre
       LEFT JOIN tahun ON films.id_tahun = tahun.id_tahun
       LEFT JOIN negara ON films.id_negara = negara.id_negara
-      WHERE films.created_by = ${userId}
+      WHERE films.created_by = ${id} -- Hanya ambil film yang dibuat oleh admin yang sedang login
       GROUP BY films.id_film
       ORDER BY films.id_film DESC
     `;
@@ -78,23 +78,21 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// POST: Tambah film baru oleh admin yang sedang login
 export async function POST(request: NextRequest) {
   try {
     const token = await getToken({ req: request });
-    console.log('Token in API:', token); // Debugging
 
-    // Perbaiki pengecekan token
     if (!token || !token.id || !token.role) {
-      console.error('Token tidak valid atau tidak memiliki id/role.');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const { id: userId, role } = token; // Gunakan token.id sebagai userId
+    const { role, id } = token;
 
-    if (role !== 'author') {
+    if (role !== 'admin') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 403 }
@@ -116,7 +114,6 @@ export async function POST(request: NextRequest) {
       genres,
     } = body;
 
-    // Validasi input
     if (
       !title ||
       !description ||
@@ -138,7 +135,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Insert film ke database
+    // Insert film baru
     const filmResult = await executeQuery<{ insertId: number }>({
       query: `
         INSERT INTO films 
@@ -155,7 +152,7 @@ export async function POST(request: NextRequest) {
         bg_image,
         id_tahun,
         id_negara,
-        userId,
+        id, // Gunakan ID admin yang sedang login sebagai created_by
         tanggal_rilis,
         durasi,
       ],
@@ -163,7 +160,7 @@ export async function POST(request: NextRequest) {
 
     const filmId = filmResult.insertId;
 
-    // Insert genre-genre ke tabel film_genres
+    // Insert genre-genre film
     for (const genreId of genres) {
       await executeQuery({
         query: 'INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)',
@@ -184,21 +181,26 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// PUT: Update film oleh admin yang sedang login
 export async function PUT(request: NextRequest) {
   try {
     const token = await getToken({ req: request });
-    console.log('Token in API:', token); // Debugging
 
-    // Perbaiki pengecekan token
     if (!token || !token.id || !token.role) {
-      console.error('Token tidak valid atau tidak memiliki id/role.');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const { id: userId, role } = token; // Gunakan token.id sebagai userId
+    const { role, id } = token;
+
+    if (role !== 'admin') {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 403 }
+      );
+    }
 
     const body = await request.json();
     const {
@@ -216,7 +218,6 @@ export async function PUT(request: NextRequest) {
       genres,
     } = body;
 
-    // Validasi input
     if (
       !id_film ||
       !title ||
@@ -239,20 +240,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Cek apakah user memiliki akses untuk mengupdate film
-    const film = await executeQuery<any>({
-      query: 'SELECT created_by FROM films WHERE id_film = ?',
-      values: [id_film],
-    });
-
-    if (role !== 'author') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 403 }
-      );
-    }
-
-    // Update film di database
+    // Update film
     const filmResult = await executeQuery<{ affectedRows: number }>({
       query: `
         UPDATE films 
@@ -267,7 +255,7 @@ export async function PUT(request: NextRequest) {
           id_negara = ?,
           tanggal_rilis = ?,
           durasi = ?
-        WHERE id_film = ?
+        WHERE id_film = ? AND created_by = ? -- Hanya update film yang dibuat oleh admin yang sedang login
       `,
       values: [
         title,
@@ -281,23 +269,23 @@ export async function PUT(request: NextRequest) {
         tanggal_rilis,
         durasi,
         id_film,
+        id, // Pastikan hanya admin yang membuat film ini yang bisa mengupdate
       ],
     });
 
     if (filmResult.affectedRows === 0) {
       return NextResponse.json(
-        { error: 'Film tidak ditemukan.' },
+        { error: 'Film tidak ditemukan atau Anda tidak memiliki izin.' },
         { status: 404 }
       );
     }
 
-    // Hapus genre lama
+    // Hapus genre lama dan insert genre baru
     await executeQuery({
       query: 'DELETE FROM film_genres WHERE film_id = ?',
       values: [id_film],
     });
 
-    // Insert genre baru
     for (const genreId of genres) {
       await executeQuery({
         query: 'INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)',
@@ -318,6 +306,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
+// DELETE: Hapus film oleh admin yang sedang login
 export async function DELETE(request: NextRequest) {
   try {
     const token = await getToken({ req: request });
@@ -329,63 +318,41 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const { id: userId, role } = token;
+    const { role, id } = token;
 
-    const url = new URL(request.url);
-    const id = url.searchParams.get('id');
-
-    if (!id) {
-      return NextResponse.json(
-        { error: 'ID film diperlukan.' },
-        { status: 400 }
-      );
-    }
-
-    // Cek apakah user memiliki akses untuk menghapus film
-    const film = await executeQuery<any>({
-      query: 'SELECT created_by FROM films WHERE id_film = ?',
-      values: [parseInt(id)],
-    });
-
-    if (role !== 'author') {
+    if (role !== 'admin') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 403 }
       );
     }
 
-    // Hapus data dari watchlist yang merujuk ke film ini
-    await executeQuery({
-      query: 'DELETE FROM watchlist WHERE film_id = ?',
-      values: [parseInt(id)],
-    });
-    // Hapus data dari favorites yang merujuk ke film ini
-    await executeQuery({
-      query: 'DELETE FROM favorites WHERE film_id = ?',
-      values: [parseInt(id)],
-    });
+    const url = new URL(request.url);
+    const filmId = url.searchParams.get('id');
 
-    // Hapus genre-genre film
-    await executeQuery({
-      query: 'DELETE FROM film_genres WHERE film_id = ?',
-      values: [parseInt(id)],
-    });
+    if (!filmId) {
+      return NextResponse.json(
+        { error: 'ID film diperlukan.' },
+        { status: 400 }
+      );
+    }
 
-    // Hapus film
+    // Hapus film hanya jika dibuat oleh admin yang sedang login
     const result = await executeQuery<{ affectedRows: number }>({
-      query: 'DELETE FROM films WHERE id_film = ?',
-      values: [parseInt(id)],
+      query: 'DELETE FROM films WHERE id_film = ? AND created_by = ?',
+      values: [parseInt(filmId), id],
     });
 
     if (result.affectedRows === 0) {
       return NextResponse.json(
-        { error: 'Film tidak ditemukan.' },
+        { error: 'Film tidak ditemukan atau Anda tidak memiliki izin.' },
         { status: 404 }
       );
     }
 
     return NextResponse.json(
-      { message: 'Film berhasil dihapus.', result }
+      { message: 'Film berhasil dihapus.' },
+      { status: 200 }
     );
   } catch (error) {
     console.error('Error deleting film:', error);

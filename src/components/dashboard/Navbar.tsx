@@ -101,8 +101,8 @@ const Navbar: React.FC = () => {
               <Link
                 href="/about"
                 className={`text-black hover:text-gray-900 relative ${
-                  pathname === "/about" ? "font-bold text-yellow-500 after:w-full" : "after:w-0"
-                } after:absolute after:-bottom-2 after:left-0 after:h-[3px] after:bg-yellow-500 after:transition-all after:duration-300`}
+                  pathname === "/about" ?  "font-bold text-black after:w-full" : "after:w-0"
+                } after:absolute after:-bottom-2 after:left-0 after:h-[3px] after:bg-black after:transition-all after:duration-300`}
               >
                 About
               </Link>

@@ -5,6 +5,14 @@ import { useState, useEffect } from 'react';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 import Image from 'next/image';
 
+// Define a custom type for the session user
+interface CustomSessionUser {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  role?: string | null; // Add role property
+}
+
 const Login = () => {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -17,15 +25,17 @@ const Login = () => {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      if (session?.user?.role === 'admin') {
+      const user = session?.user as CustomSessionUser; // Cast session.user to CustomSessionUser
+      if (user?.role === 'admin') {
         router.push('/admin/home');
-      } else if (session?.user?.role === 'author') {
+      } else if (user?.role === 'author') {
         router.push('/');
       } else {
         router.push('/');
       }
     }
   }, [session, status, router]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -34,17 +44,17 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-  
+
     console.log('Form data:', formData); // Log data form
-  
+
     const result = await signIn('credentials', {
       redirect: false,
       email: formData.email,
       password: formData.password,
     });
-  
+
     console.log('SignIn result:', result); // Log hasil signIn
-  
+
     if (result?.error) {
       setError(result.error);
     } else {
@@ -54,6 +64,7 @@ const Login = () => {
       }
     }
   };
+
   return (
     <div className="flex min-h-screen">
       {/* Left side - Image */}
@@ -143,9 +154,7 @@ const Login = () => {
                 />
                 <label className="ml-2 text-sm text-gray-600">Remember me</label>
               </div>
-              <button type="button" className="text-sm text-blue-600 hover:text-blue-500">
-                Forgot password?
-              </button>
+             
             </div>
 
             {/* Sign in button */}

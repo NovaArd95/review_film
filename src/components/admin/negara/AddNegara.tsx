@@ -33,6 +33,7 @@ export default function AddNegaraForm({ onSuccess, onCancel }: AddNegaraFormProp
       setNamaNegara("");
       onSuccess(); // Notifikasi sukses
       onCancel(); // Tutup modal setelah sukses
+      window.location.reload(); // Auto-reload setelah berhasil
     } catch (err: any) {
       setError(err.message || "Terjadi kesalahan.");
     } finally {

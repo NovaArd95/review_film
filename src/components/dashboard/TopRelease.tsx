@@ -43,7 +43,7 @@ interface ExtendedSession {
   };
 }
 
-const TopMovies = () => {
+const TopRelease = () => {
   const [movies, setMovies] = useState<Film[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
@@ -83,9 +83,7 @@ const TopMovies = () => {
           })
         );
 
-        // Urutkan film berdasarkan rating (descending)
-        const sortedMovies = moviesWithRatings.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        setMovies(sortedMovies); // Setel film yang sudah diurutkan
+        setMovies(moviesWithRatings);
       } catch (err) {
         if (err instanceof Error) {
           setError(err);
@@ -208,26 +206,31 @@ const TopMovies = () => {
     return <p>{error.message}</p>;
   }
 
+  // Ambil 7 film terbaru berdasarkan created_at
+  const newMovies = movies
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 7);
+
   return (
-    <div className="bg-black p-6">
+    <div id="top-release" className="bg-black p-6"> {/* Added ID for smooth scrolling */}
       <div className="max-w-7xl mx-auto">
       <h1 className="text-white text-2xl font-bold flex items-center gap-2 mb-12 mt-12">
             <span className="w-1 h-8 bg-yellow-500"></span>
-            Top Rated Movies
+            New Release Movies
           </h1>
-        <div className="relative" id="top-movies-swiper"> {/* Unique ID for Swiper container */}
+        <div className="relative" id="top-release-swiper"> {/* Unique ID for Swiper container */}
           <Swiper
             modules={[Navigation, Pagination]}
             spaceBetween={20}
             slidesPerView={5} // Tampilkan 5 card per slide
             navigation={{
-              nextEl: '#top-movies-next', // Scoped navigation button
-              prevEl: '#top-movies-prev', // Scoped navigation button
+              nextEl: '#top-release-next', // Scoped navigation button
+              prevEl: '#top-release-prev', // Scoped navigation button
             }}
             pagination={{
               clickable: true,
               type: 'bullets',
-              el: '.top-movies-pagination', // Custom pagination element
+              el: '.top-release-pagination', // Custom pagination element
               bulletClass: 'swiper-pagination-bullet', // Default bullet class
               bulletActiveClass: 'swiper-pagination-bullet-active', // Active bullet class
             }}
@@ -250,7 +253,7 @@ const TopMovies = () => {
               },
             }}
           >
-            {movies.map((movie) => (
+            {newMovies.map((movie) => (
               <SwiperSlide key={movie.id_film}>
                 <div className="relative group">
                   {/* Tombol tambah ke watchlist dan favorite */}
@@ -320,31 +323,31 @@ const TopMovies = () => {
           </Swiper>
 
           {/* Custom Navigation Buttons */}
-          <div id="top-movies-next" className="!text-white !p-3 !absolute !top-1/2 !right-[-70px] !z-10 !transform !-translate-y-1/2 flex items-center justify-center hover:!text-blue-500">
+          <div id="top-release-next" className="!text-white !p-3 !absolute !top-1/2 !right-[-70px] !z-10 !transform !-translate-y-1/2 flex items-center justify-center hover:!text-blue-500">
             <ChevronRight className="w-20 h-20" />
           </div>
-          <div id="top-movies-prev" className="!text-white !p-3 !absolute !top-1/2 !left-[-70px] !z-10 !transform !-translate-y-1/2 flex items-center justify-center hover:!text-blue-500">
+          <div id="top-release-prev" className="!text-white !p-3 !absolute !top-1/2 !left-[-70px] !z-10 !transform !-translate-y-1/2 flex items-center justify-center hover:!text-blue-500">
             <ChevronLeft className="w-20 h-20" />
           </div>
 
           {/* Custom Pagination */}
-          <div className="top-movies-pagination !mt-6 flex justify-center"></div>
+          <div className="top-release-pagination !mt-6 flex justify-center"></div>
         </div>
       </div>
     </div>
   );
 
-// Add global styles for pagination bullets
-<style global jsx>{`
-  .swiper-pagination-bullet {
-    background-color: white; /* Inactive dots are white */
-    opacity: 0.6;
-  }
-  .swiper-pagination-bullet-active {
-    background-color: blue; /* Active dot is blue */
-    opacity: 1;
-  }
-`}</style>
+  // Add global styles for pagination bullets
+  <style global jsx>{`
+    .swiper-pagination-bullet {
+      background-color: white; /* Inactive dots are white */
+      opacity: 0.6;
+    }
+    .swiper-pagination-bullet-active {
+      background-color: blue; /* Active dot is blue */
+      opacity: 1;
+    }
+  `}</style>
 };
 
-export default TopMovies;
+export default TopRelease;

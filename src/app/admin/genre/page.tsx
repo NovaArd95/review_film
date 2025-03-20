@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState } from "react";
 import AddGenreForm from "@/components/admin/genre/AddGenre";
 import GenreTable from "@/components/admin/genre/GenreTable";

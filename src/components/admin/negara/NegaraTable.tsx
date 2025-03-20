@@ -41,6 +41,7 @@ export default function NegaraTable() {
       if (response.ok) {
         fetchNegara();
         closeModal();
+        window.location.reload(); // Auto-reload setelah berhasil
       }
     } catch (error) {
       console.error("Error deleting negara:", error);

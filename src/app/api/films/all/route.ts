@@ -18,7 +18,7 @@ export async function GET() {
       LEFT JOIN tahun ON films.id_tahun = tahun.id_tahun
       LEFT JOIN negara ON films.id_negara = negara.id_negara
       GROUP BY films.id_film
-      ORDER BY films.id_film DESC
+      ORDER BY films.created_at DESC
     `;
 
     const films = await executeQuery<any[]>({ query });
